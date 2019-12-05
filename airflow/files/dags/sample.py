@@ -9,22 +9,25 @@ from airflow.operators.dummy_operator import DummyOperator
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime.utcnow(),
+    'start_date': datetime(2019, 12, 5, 11, 29, 00),
     'email': ['airflow@example.com'],
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5)
+    'retry_delay': timedelta(hours=1)
 }
 
 dag = DAG(
-    'kubernetes_sample',
+    'test-rre',
     default_args=default_args,
-    schedule_interval=timedelta(minutes=10)
+    schedule_interval=timedelta(hours=1)
 )
 
-
-start = DummyOperator(task_id='run_this_first', dag=dag)
+#run_this = BashOperator(
+#    task_id='run_after_loop',
+#    bash_command='echo 1',
+#    dag=dag,
+#)
 
 k8s = KubernetesPodOperator(
     namespace='default',
@@ -48,6 +51,7 @@ k8s = KubernetesPodOperator(
         VolumeMount('usr-bin', mount_path='/usr/bin', sub_path="", read_only=True),
     ],
     get_logs=True,
+    in_cluster=True,
     dag=dag
 )
 
