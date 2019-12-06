@@ -11,8 +11,23 @@ spec:
       hostPID: true
       containers:
       - name: kube-bench
-        image: aquasec/kube-bench:latest
-        command: ["kube-bench", "--json", "--logtostderr"]
+        #image: aquasec/kube-bench:latest
+        image: rrey/kube-bench:0.7
+        #command: ["kube-bench", "--json", "--logtostderr", "--outputfile", "kube-bench-node.json"]
+        env:
+         - name: REPORT_FILENAME
+           value: kube-bench-node.json
+         - name: KUBERNETES_VERSION
+           value: "1.14"
+         - name: S3_BUCKET_NAME
+           value: "test-kube-rre"
+         - name: AWS_ACCESS_KEY_ID
+           value: AKIAQIXVWUDKBJ2G7K7R
+         - name: AWS_SECRET_ACCESS_KEY
+           valueFrom:
+             secretKeyRef:
+               name: aws-secret-access-key
+               key: AWS_SECRET_ACCESS_KEY
         volumeMounts:
         - name: var-lib-etcd
           mountPath: /var/lib/etcd
@@ -24,8 +39,8 @@ spec:
           mountPath: /etc/kubernetes
           # /usr/bin is mounted to access kubectl / kubelet, for auto-detecting the Kubernetes version.
           # You can omit this mount if you specify --version as part of the command.
-        - name: usr-bin
-          mountPath: /usr/bin
+          #- name: usr-bin
+          #  mountPath: /usr/bin
       restartPolicy: Never
       volumes:
       - name: var-lib-etcd
