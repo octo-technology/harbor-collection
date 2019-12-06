@@ -43,15 +43,16 @@ k8s = KubernetesPodOperator(
         Volume(name="etc-kubernetes", configs={'hostPath': {"path": "/etc/kubernetes"}}),
         Volume(name="usr-bin", configs={'hostPath': {"path": "/usr/bin"}}),
     ],
-    volumes_mounts=[
-        VolumeMount('var-lib-etcd', mount_path='/var/lib/etcd', sub_path="", read_only=True),
-        VolumeMount('var-lib-kubelet', mount_path='/var/lib/kubelet', sub_path="", read_only=True),
-        VolumeMount('etc-systemd', mount_path='/etc/systemd', sub_path="", read_only=True),
-        VolumeMount('etc-kubernetes', mount_path='/etc/kubernetes', sub_path="", read_only=True),
-        VolumeMount('usr-bin', mount_path='/usr/bin', sub_path="", read_only=True),
+    volume_mounts=[
+        VolumeMount('var-lib-etcd', mount_path='/var/lib/etcd', sub_path=None, read_only=True),
+        VolumeMount('var-lib-kubelet', mount_path='/var/lib/kubelet', sub_path=None, read_only=True),
+        VolumeMount('etc-systemd', mount_path='/etc/systemd', sub_path=None, read_only=True),
+        VolumeMount('etc-kubernetes', mount_path='/etc/kubernetes', sub_path=None, read_only=True),
+        VolumeMount('usr-bin', mount_path='/usr/bin', sub_path=None, read_only=True),
     ],
     get_logs=True,
     in_cluster=True,
+    is_delete_operator_pod=True,
     dag=dag
 )
 
