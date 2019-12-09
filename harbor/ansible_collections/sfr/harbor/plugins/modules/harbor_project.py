@@ -72,30 +72,38 @@ class HarborInterface(object):
         full_url = "{harbor_url}{path}".format(harbor_url=self.harbor_url, path=path)
         resp, info = fetch_url(self._module, full_url, data=data, headers=headers, method=method)
         status_code = info["status"]
-        if status_code == 404:
+        if status_code == 404 or status_code == 201:
             return None
-        elif status_code == 401:
-            self._module.fail_json(failed=True, msg="Unauthorized to perform action '%s' on '%s' header: %s" % (method, full_url, self.headers))
-        elif status_code == 403:
-            self._module.fail_json(failed=True, msg="Permission Denied")
         elif status_code == 200:
-            return self._module.from_json(resp.read())
-        self._module.fail_json(failed=True, msg="Harbor API answered with HTTP %d" % status_code)
+            content = resp.read()
+            if content:
+                return self._module.from_json(content)
+            else:
+                return None
+        elif status_code == 401:
+            self._module.fail_json(msg="Unauthorized to perform action '%s' on '%s' header: %s" % (method, full_url, self.headers))
+        elif status_code == 403:
+            self._module.fail_json(msg="Permission Denied")
+        self._module.fail_json(
+            failed=True,
+            msg="Harbor API answered with HTTP %d, url %s, response %s, payload %s" % (status_code, full_url, resp, data))
 
     def create_project(self, name):
         url = "/api/projects"
-        project = dict(project_name=name, metadata=dict(public=False), count_limit=-1, storage_limit=10737418240)
+        project = dict(project_name=name, metadata=dict(public="false"), count_limit=-1, storage_limit=10737418240)
         response = self._send_request(url, data=project, headers=self.headers, method="POST")
         return response
 
     def get_project_by_name(self, name):
         url = "/api/projects?name={name}".format(name=name)
         response = self._send_request(url, headers=self.headers, method="GET")
+
+        if not response:
+            return None
+
         if not len(response) == 1:
             raise AssertionError("Expected 1 project, got %d" % len(response))
 
-        if len(response) == 0:
-            return None
         return response[0]
 
     def delete_project(self, project_id):
@@ -119,7 +127,8 @@ class HarborInterface(object):
 def setup_module_object():
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=False
+        supports_check_mode=False,
+        required_together=[['harbor_username', 'harbor_password']]
     )
     return module
 
@@ -134,8 +143,8 @@ argument_spec.update(
     state=dict(choices=['present', 'absent'], default='present'),
     name=dict(type='str', required=True),
     harbor_url=dict(type='str', required=True),
-    harbor_username=dict(aliases=['harbor_user'], default='admin'),
-    harbor_password=dict(aliases=['harbor_password'], default='admin', no_log=True),
+    harbor_username=dict(aliases=['harbor_user'], type='str'),
+    harbor_password=dict(type='str'),
 )
 
 
@@ -159,8 +168,8 @@ def main():
         project = harbor_iface.get_project_by_name(name)
         if project is None:
             module.exit_json(failed=False, changed=False, message="No project found")
-        result = harbor_iface.delete_project(project.get("project_id"))
-        module.exit_json(failed=False, changed=True, message=result.get("message"))
+        harbor_iface.delete_project(project.get("project_id"))
+        module.exit_json(failed=False, changed=True, project=project)
 
 
 if __name__ == '__main__':

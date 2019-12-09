@@ -1,0 +1,29 @@
+---
+
+- name: create new project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+  register: first_creation_result
+
+- assert:
+    that:
+      - "first_creation_result.changed == true"
+      - "first_creation_result.project.name == 'test_project'"
+
+- name: recreate same new project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+  register: second_creation_result
+
+- assert:
+    that:
+      - "second_creation_result.changed == false"
+      - "second_creation_result.project.project_id == {{ first_creation_result.project.project_id }}"
