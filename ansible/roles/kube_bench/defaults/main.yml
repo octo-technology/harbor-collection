@@ -1,0 +1,14 @@
+---
+
+kube_bench_github_url: "https://github.com/aquasecurity/kube-bench"
+kube_bench_version: 0.2.2
+kube_bench_sub_command: "" # Can be node,master
+kube_bench_workdir: "kube-bench"
+kube_bench_report_name: "kube-bench-{{ ansible_hostname }}.json"
+
+# S3 related variable for report transfer
+kube_bench_s3_transfer: false
+kube_bench_s3_bucket_name: null
+kube_bench_s3_object_path: null
+
+...
