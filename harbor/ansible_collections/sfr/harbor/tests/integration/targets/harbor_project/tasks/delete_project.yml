@@ -1,0 +1,29 @@
+---
+
+- name: (re)create new project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.project.name == 'test_project'"
+
+- name: delete project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: absent
+  register: deletion_result
+
+- assert:
+    that:
+      - "deletion_result.changed == true"
+      - "deletion_result.project.project_id == {{ creation_result.project.project_id }}"
+
