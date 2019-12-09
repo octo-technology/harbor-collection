@@ -1,0 +1,68 @@
+---
+
+- name: create a user
+  harbor_user:
+      harbor_url: "http://127.0.0.1:9090"
+      harbor_user: admin
+      harbor_password: Harbor12345
+      username: "rrey"
+      email: "rrey@octo.com"
+      state: present
+  register: result
+
+- assert:
+    that:
+      - 'result.changed == true'
+      - 'result.user.username == "rrey"'
+      - 'result.user.email == "rrey@octo.com"'
+
+- name: Check user creation idempotency
+  harbor_user:
+      harbor_url: "http://127.0.0.1:9090"
+      harbor_user: admin
+      harbor_password: Harbor12345
+      username: "rrey"
+      email: "rrey@octo.com"
+      state: present
+  register: result
+
+- assert:
+    that:
+      - 'result.changed == false'
+      - 'result.user.username == "rrey"'
+      - 'result.user.email == "rrey@octo.com"'
+
+- name: delete a user
+  harbor_user:
+      harbor_url: "http://127.0.0.1:9090"
+      harbor_user: admin
+      harbor_password: Harbor12345
+      username: "rrey"
+      email: "rrey@octo.com"
+      state: absent
+  register: result
+
+- assert:
+    that:
+      - 'result.changed == true'
+      - 'result.message == "user deleted"'
+
+- name: Check delete user idempotency
+  harbor_user:
+      harbor_url: "http://127.0.0.1:9090"
+      harbor_user: admin
+      harbor_password: Harbor12345
+      username: "rrey"
+      email: "rrey@octo.com"
+      state: absent
+  register: result
+
+- debug:
+    var: result
+
+- assert:
+    that:
+      - 'result.changed == false'
+      - 'result.message == "No user found"'
+
+...
