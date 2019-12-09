@@ -22,7 +22,7 @@
     creates: "{{ kube_bench_report_name }}"
 
 - name: Push report to S3 compatible destination
-  s3:
+  aws_s3:
     bucket: "{{ kube_bench_s3_bucket_name }}"
     object: "{{ kube_bench_s3_object_path }}/{{ kube_bench_report_name }}"
     src: "{{ kube_bench_workdir }}/{{ kube_bench_report_name }}"
