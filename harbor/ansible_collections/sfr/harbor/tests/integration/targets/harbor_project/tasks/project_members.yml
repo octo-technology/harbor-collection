@@ -23,7 +23,6 @@
     harbor_password: "{{ harbor_admin_password }}"
     administrators:
       - test_admin
-    auto_scan: true
     name: test_project
     state: present
   register: creation_result
@@ -32,7 +31,6 @@
     that:
       - "creation_result.changed == true"
       - "creation_result.project.members[1]['entity_id'] == {{ user_creation.user.user_id }}"
-      - 'creation_result.project.metadata.auto_scan == "true"'
 
 
 - name: clear project
