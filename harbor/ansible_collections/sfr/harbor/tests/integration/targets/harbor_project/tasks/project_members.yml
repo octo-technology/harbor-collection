@@ -1,0 +1,54 @@
+---
+
+- name: create an administrator for our project
+  harbor_user:
+      harbor_url: "http://{{ local_harbor }}"
+      harbor_user: "{{ harbor_admin_user }}"
+      harbor_password: "{{ harbor_admin_password }}"
+      username: "test_admin"
+      email: "test_admin@example.com"
+      state: present
+  register: user_creation
+
+- assert:
+    that:
+      - 'user_creation.changed == true'
+      - 'user_creation.user.username == "test_admin"'
+
+
+- name: create our project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    administrators:
+      - test_admin
+    auto_scan: true
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == true"
+      - "creation_result.project.members[1]['entity_id'] == {{ user_creation.user.user_id }}"
+      - 'creation_result.project.metadata.auto_scan == "true"'
+
+
+- name: clear project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: absent
+
+
+- name: clear user
+  harbor_user:
+      harbor_url: "http://{{ local_harbor }}"
+      harbor_user: "{{ harbor_admin_user }}"
+      harbor_password: "{{ harbor_admin_password }}"
+      username: "test_admin"
+      email: "test_admin@octo.com"
+      state: absent
