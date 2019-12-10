@@ -1,0 +1,118 @@
+---
+
+- name: create our project without retention
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == true"
+
+
+- name: remove nonexisting retention for our project (should do nothing)
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == false"
+
+
+- name: recreate our project with a retention of 4 versions
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    versions_retained: 4
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == true"
+      - "creation_result.project.retention.rules[0].params.latestPushedK == 4"
+      - 'creation_result.project.retention.rules[0].tag_selectors[0].pattern == "*.*.*"'
+
+
+- name: recreate again our project with a same retention of 4 versions
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    versions_retained: 4
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == false"
+      - "creation_result.project.retention.rules[0].params.latestPushedK == 4"
+      - 'creation_result.project.retention.rules[0].tag_selectors[0].pattern == "*.*.*"'
+
+
+- name: change retention to 10 versions
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    versions_retained: 10
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == true"
+      - "creation_result.project.retention.rules[0].params.latestPushedK == 10"
+      - 'creation_result.project.retention.rules[0].tag_selectors[0].pattern == "*.*.*"'
+
+
+- name: remove retention for our project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == true"
+      - "creation_result.project.retention.rules | length == 0"
+
+
+- name: remove again retention for our project (should be effectless)
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == false"
+      - "creation_result.project.retention.rules | length == 0"
+
+
+- name: clear project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: absent
