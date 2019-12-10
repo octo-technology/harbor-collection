@@ -21,24 +21,113 @@ options:
       - The URL of the target Harbor server's API.
     required: true
     type: str
-  email:
+    aliases: ["harbor_url"]
+  harbor_username:
     description:
-      - The mail address associated with the user.
+      - The username used for basic authentication with Harbor.
+    required: false
+    type: str
+    aliases: ["harbor_user"]
+    default: "admin"
+  harbor_password:
+    description:
+      - The password used for basic authentication with Harbor.
+    required: false
+    type: str
+    aliases: ["harbor_password"]
+    default: "Harbor12345"
+  name:
+    description: name of the project
     required: true
     type: str
-  username:
+  administrators:
+    description: list of user names that can administer the project
+    required: false
+    type: list
+  auto_scan:
+    description: whether to activate scan-on-push on images or the project
+    required: false
+    type: bool
+    default: false
+  versions_retained:
+    description: number of semantically tagged versions of images to retain (last pushed)
+    required: false
+    type: int
+  state:
     description:
-      - The user for API authentication.
+      - The desired state.
     required: true
     type: str
-  password:
+    choices: ["present", "absent"]
+    default: "present"
+  use_proxy:
     description:
-      - The user password for API authentication.
-    required: true
-    type: str
+      - If C(no), it will not use a proxy, even if one is defined in an environment variable on the target hosts.
+    type: bool
+    default: yes
+  client_cert:
+    description:
+      - PEM formatted certificate chain file to be used for SSL client authentication.
+      - This file can also include the key as well, and if the key is included, I(client_key) is not required
+    type: path
+  client_key:
+    description:
+      - PEM formatted file that contains your private key to be used for SSL client authentication.
+      - If I(client_cert) contains both the certificate and key, this option is not required.
+    type: path
+  validate_certs:
+    description:
+      - If C(no), SSL certificates will not be validated.
+      - This should only set to C(no) used on personally controlled sites using self-signed certificates.
+      - Prior to 1.9.2 the code defaulted to C(no).
+    type: bool
+    default: yes
 '''
 
 EXAMPLES = '''
+- name: create new project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+
+- name: delete project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: absent
+
+- name: renable scan-on-push
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auto_scan: true
+    name: test_project
+    state: present
+
+- name: add an administrator to a project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    administrators:
+      - test_admin
+    name: test_project
+    state: present
+
+- name: set retention to 10 semantically versioned image versions
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    versions_retained: 10
+    name: test_project
+    state: present
 '''
 
 RETURN = '''
@@ -68,7 +157,6 @@ class HarborInterface(object):
             data = json.dumps(data, sort_keys=True)
         if not headers:
             headers = []
-
         full_url = "{harbor_url}{path}".format(harbor_url=self.harbor_url, path=path)
         resp, info = fetch_url(self._module, full_url, data=data, headers=headers, method=method)
         status_code = info["status"]
@@ -139,30 +227,29 @@ class HarborInterface(object):
 
     def get_retention_definition(self, project_id, number_of_images_to_retain):
         rules = [] if number_of_images_to_retain is None else [
-                {
-                    "disabled": False,
-                    "action": "retain",
-                    "params": {"latestPushedK": number_of_images_to_retain},
-                    "scope_selectors": {
-                        "repository": [
-                            {
-                                "kind": "doublestar",
-                                "decoration": "repoMatches",
-                                "pattern": "**"
-                            }
-                        ]
-                    },
-                    "tag_selectors": [
+            {
+                "disabled": False,
+                "action": "retain",
+                "params": {"latestPushedK": number_of_images_to_retain},
+                "scope_selectors": {
+                    "repository": [
                         {
                             "kind": "doublestar",
-                            "decoration": "matches",
-                            "pattern": "*.*.*"
+                            "decoration": "repoMatches",
+                            "pattern": "**"
                         }
-                    ],
-                    "template": "latestPushedK"
-                }
-            ]
-
+                    ]
+                },
+                "tag_selectors": [
+                    {
+                        "kind": "doublestar",
+                        "decoration": "matches",
+                        "pattern": "*.*.*"
+                    }
+                ],
+                "template": "latestPushedK"
+            }
+        ]
         payload = {
             "rules": rules,
             "algorithm": "or",
