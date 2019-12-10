@@ -1,0 +1,73 @@
+---
+
+- name: create our project with autoscan enabled
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auto_scan: true
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == true"
+      - 'creation_result.project.metadata.auto_scan == "true"'
+
+
+- name: recreate our project with autoscan enabled
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auto_scan: true
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == false"
+      - 'creation_result.project.metadata.auto_scan == "true"'
+
+
+- name: disable autoscan
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auto_scan: false
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == true"
+      - 'creation_result.project.metadata.auto_scan == "false"'
+
+
+- name: disable autoscan again
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auto_scan: false
+    name: test_project
+    state: present
+  register: creation_result
+
+- assert:
+    that:
+      - "creation_result.changed == false"
+      - 'creation_result.project.metadata.auto_scan == "false"'
+
+
+- name: clear project
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_user: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: absent
