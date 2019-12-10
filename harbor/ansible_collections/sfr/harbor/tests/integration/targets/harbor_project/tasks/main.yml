@@ -1,6 +1,9 @@
 ---
 
+- import_tasks: clean.yml
 - import_tasks: create_project.yml
 - import_tasks: delete_project.yml
 - import_tasks: project_members.yml
 - import_tasks: auto_scan.yml
+- import_tasks: retentions.yml
+- import_tasks: clean.yml
