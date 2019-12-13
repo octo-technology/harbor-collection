@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+#
+# Copyright: (c) 2019, SFR
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 
@@ -11,25 +14,27 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: harbor.projects
-
+module: harbor_project
+author:
+  - Antoine Gaudelas (!UNKNOWN)
 description:
   - Create/update/delete Harbor projects using Harbor's REST API.
+short_description: Create project on Harbor
 options:
-  harbor_url:
+  url:
     description:
       - The URL of the target Harbor server's API.
     required: true
     type: str
     aliases: ["harbor_url"]
-  harbor_username:
+  url_username:
     description:
       - The username used for basic authentication with Harbor.
     required: false
     type: str
     aliases: ["harbor_user"]
     default: "admin"
-  harbor_password:
+  url_password:
     description:
       - The password used for basic authentication with Harbor.
     required: false
@@ -298,9 +303,9 @@ del argument_spec['http_agent']
 argument_spec.update(
     state=dict(choices=['present', 'absent'], default='present'),
     name=dict(type='str', required=True),
-    harbor_url=dict(type='str', required=True),
-    harbor_username=dict(aliases=['harbor_user'], type='str'),
-    harbor_password=dict(type='str'),
+    url=dict(aliases=['harbor_url'], type='str', required=True),
+    url_username=dict(aliases=['harbor_user'], type='str', default="admin"),
+    url_password=dict(aliases=['harbor_password'], type='str', default="Harbor12345"),
     auto_scan=dict(type='bool', defaults=False),
     versions_retained=dict(type='int'),
     administrators=dict(type='list', default=None),
@@ -350,7 +355,11 @@ def main():
                 existing_retention = None
             else:
                 # remove server-generated keys to allow for memberwise comparison
-                existing_retention = {k: v for (k, v) in project_retention.items() if k != "id"}
+                existing_retention = {}
+                for k, v in project_retention.items():
+                    if k != "id":
+                        existing_retention[k] = v
+                # existing_retention = {k: v for (k, v) in project_retention.items() if k != "id"}
                 for rule in existing_retention['rules']:
                     del rule["id"]
                     del rule["priority"]

@@ -26,4 +26,3 @@
     that:
       - "deletion_result.changed == true"
       - "deletion_result.project.project_id == {{ creation_result.project.project_id }}"
-

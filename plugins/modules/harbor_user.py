@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+#
+# Copyright: (c) 2019, SFR
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 
@@ -12,8 +15,11 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = '''
 ---
 module: harbor_user
+author:
+  - Antoine Gaudelas (!UNKNOWN)
 description:
   - Create/update/delete Harbor users using Harbor's REST API.
+short_description: Create user on Harbor
 options:
   url:
     description:
