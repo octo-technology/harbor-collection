@@ -1,13 +1,5 @@
-# harbor-collection
+## Modules
 
-Run kube-bench in a Kubernetes Job.
+### harbor_user
 
-## sample
-
-`sample/bench-node.json`: The JSON formatted report on a worker node.
-
-## Quickstart
-
-```
-$ kubectl apply -f job.yml
-```
+The module allows to manage Users in Harbor. It shall not be used if ldap is plugged in.
