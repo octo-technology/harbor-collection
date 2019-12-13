@@ -3,7 +3,7 @@
 - name: create our project without retention
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: present
@@ -17,7 +17,7 @@
 - name: remove nonexisting retention for our project (should do nothing)
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: present
@@ -31,7 +31,7 @@
 - name: recreate our project with a retention of 4 versions
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     versions_retained: 4
     name: test_project
@@ -48,7 +48,7 @@
 - name: recreate again our project with a same retention of 4 versions
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     versions_retained: 4
     name: test_project
@@ -65,7 +65,7 @@
 - name: change retention to 10 versions
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     versions_retained: 10
     name: test_project
@@ -82,7 +82,7 @@
 - name: remove retention for our project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: present
@@ -97,7 +97,7 @@
 - name: remove again retention for our project (should be effectless)
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: present
@@ -112,7 +112,7 @@
 - name: clear project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: absent

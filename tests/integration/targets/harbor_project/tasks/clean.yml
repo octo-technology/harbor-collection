@@ -3,7 +3,7 @@
 - name: delete test project
   harbor_project:
       harbor_url: "http://{{ local_harbor }}"
-      harbor_user: "{{ harbor_admin_user }}"
+      harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       name: test_project
       state: absent
@@ -11,7 +11,7 @@
 - name: delete test user
   harbor_user:
       harbor_url: "http://{{ local_harbor }}"
-      harbor_user: "{{ harbor_admin_user }}"
+      harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       username: "test_admin"
       email: "test_admin@octo.com"

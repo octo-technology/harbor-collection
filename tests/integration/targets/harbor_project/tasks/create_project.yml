@@ -3,7 +3,7 @@
 - name: create new project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: present
@@ -17,7 +17,7 @@
 - name: recreate same new project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: present

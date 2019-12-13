@@ -46,7 +46,7 @@ EXAMPLES = '''
 - name: create new project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: present
@@ -54,7 +54,7 @@ EXAMPLES = '''
 - name: delete project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: absent
@@ -62,7 +62,7 @@ EXAMPLES = '''
 - name: renable scan-on-push
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     auto_scan: true
     name: test_project
@@ -71,7 +71,7 @@ EXAMPLES = '''
 - name: add an administrator to a project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     administrators:
       - test_admin
@@ -81,7 +81,7 @@ EXAMPLES = '''
 - name: set retention to 10 semantically versioned image versions
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     versions_retained: 10
     name: test_project
