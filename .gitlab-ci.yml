@@ -1,4 +1,4 @@
-image: centos:7
+image: rrey/ansible-collection-runner:0.1
 variables:
   ANSIBLE_FORCE_COLOR: "true"
 
@@ -14,12 +14,9 @@ sanity:
     DOCKER_HOST: "tcp://docker:2375"
     DOCKER_TLS_CERTDIR: ""
   before_script:
-    - yum update -y && yum install -y epel-release openssh-clients git docker
-    - yum install -y python-pip
-    - pip install ansible==2.9.2
     - mkdir -p ../ansible_collections/sfr/
     - mv ../sfr-bench ../ansible_collections/sfr/harbor
+    - mkdir -p ../sfr-bench
       #    - cd harbor/ansible_collections/sfr/harbor
   script:
-    - ansible-test sanity --docker
-    - mv ../ansible_collections/sfr/harbor ../sfr-bench
+    - ansible-test sanity --docker --python 3.6
