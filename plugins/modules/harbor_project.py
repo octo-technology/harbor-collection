@@ -4,7 +4,7 @@
 # Copyright: (c) 2019, SFR
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import (absolute_import, division, print_function)
 
 ANSIBLE_METADATA = {
     'status': ['preview'],
@@ -21,26 +21,6 @@ description:
   - Create/update/delete Harbor projects using Harbor's REST API.
 short_description: Create project on Harbor
 options:
-  url:
-    description:
-      - The URL of the target Harbor server's API.
-    required: true
-    type: str
-    aliases: ["harbor_url"]
-  url_username:
-    description:
-      - The username used for basic authentication with Harbor.
-    required: false
-    type: str
-    aliases: ["harbor_user"]
-    default: "admin"
-  url_password:
-    description:
-      - The password used for basic authentication with Harbor.
-    required: false
-    type: str
-    aliases: ["harbor_password"]
-    default: "Harbor12345"
   name:
     description: name of the project
     required: true
@@ -58,35 +38,8 @@ options:
     description: number of semantically tagged versions of images to retain (last pushed)
     required: false
     type: int
-  state:
-    description:
-      - The desired state.
-    required: true
-    type: str
-    choices: ["present", "absent"]
-    default: "present"
-  use_proxy:
-    description:
-      - If C(no), it will not use a proxy, even if one is defined in an environment variable on the target hosts.
-    type: bool
-    default: yes
-  client_cert:
-    description:
-      - PEM formatted certificate chain file to be used for SSL client authentication.
-      - This file can also include the key as well, and if the key is included, I(client_key) is not required
-    type: path
-  client_key:
-    description:
-      - PEM formatted file that contains your private key to be used for SSL client authentication.
-      - If I(client_cert) contains both the certificate and key, this option is not required.
-    type: path
-  validate_certs:
-    description:
-      - If C(no), SSL certificates will not be validated.
-      - This should only set to C(no) used on personally controlled sites using self-signed certificates.
-      - Prior to 1.9.2 the code defaulted to C(no).
-    type: bool
-    default: yes
+extends_documentation_fragment:
+  - sfr.harbor.harbor
 '''
 
 EXAMPLES = '''
@@ -139,47 +92,14 @@ RETURN = '''
 ---
 '''
 
-import json
-
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.urls import fetch_url, url_argument_spec, basic_auth_header
+from ansible_collections.sfr.harbor.plugins.module_utils.base import harbor_argument_spec
+from ansible_collections.sfr.harbor.plugins.module_utils.harbor import HarborBaseInterface
 
 __metaclass__ = type
 
 
-class HarborInterface(object):
-
-    def __init__(self, module):
-        self._module = module
-        # {{{ Authentication header
-        self.headers = {"Content-Type": "application/json"}
-        self.headers["Authorization"] = basic_auth_header(module.params['harbor_username'], module.params['harbor_password'])
-        # }}}
-        self.harbor_url = module.params.get("harbor_url")
-
-    def _send_request(self, path, data=None, headers=None, method="GET"):
-        if data is not None:
-            data = json.dumps(data, sort_keys=True)
-        if not headers:
-            headers = []
-        full_url = "{harbor_url}{path}".format(harbor_url=self.harbor_url, path=path)
-        resp, info = fetch_url(self._module, full_url, data=data, headers=headers, method=method)
-        status_code = info["status"]
-        if status_code == 404 or status_code == 201:
-            return None
-        elif status_code == 200:
-            content = resp.read()
-            if content:
-                return self._module.from_json(content)
-            else:
-                return None
-        elif status_code == 401:
-            self._module.fail_json(msg="Unauthorized to perform action '%s' on '%s' header: %s" % (method, full_url, self.headers))
-        elif status_code == 403:
-            self._module.fail_json(msg="Permission Denied")
-        self._module.fail_json(
-            failed=True,
-            msg="Harbor API answered with HTTP %d, url %s, response %s, payload %s" % (status_code, full_url, resp, data))
+class HarborInterface(HarborBaseInterface):
 
     def create_project(self, name):
         url = "/api/projects"
@@ -294,18 +214,10 @@ def setup_module_object():
     return module
 
 
-argument_spec = url_argument_spec()
-# remove unnecessary arguments
-del argument_spec['force']
-del argument_spec['force_basic_auth']
-del argument_spec['http_agent']
+argument_spec = harbor_argument_spec()
 
 argument_spec.update(
-    state=dict(choices=['present', 'absent'], default='present'),
     name=dict(type='str', required=True),
-    url=dict(aliases=['harbor_url'], type='str', required=True),
-    url_username=dict(aliases=['harbor_user'], type='str', default="admin"),
-    url_password=dict(aliases=['harbor_password'], type='str', default="Harbor12345"),
     auto_scan=dict(type='bool', defaults=False),
     versions_retained=dict(type='int'),
     administrators=dict(type='list', default=None),
