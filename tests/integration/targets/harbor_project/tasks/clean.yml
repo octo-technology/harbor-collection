@@ -16,4 +16,3 @@
       username: "test_admin"
       email: "test_admin@octo.com"
       state: absent
-
