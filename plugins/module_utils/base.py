@@ -19,7 +19,7 @@ def harbor_argument_spec():
     argument_spec.update(
         state=dict(choices=['present', 'absent'], default='present'),
         url=dict(aliases=['harbor_url'], type='str', required=True),
-        url_username=dict(aliases=['harbor_user'], type='str', default="admin"),
-        url_password=dict(aliases=['harbor_password'], type='str', default="Harbor12345")
+        url_username=dict(aliases=['harbor_username'], type='str', default="admin"),
+        url_password=dict(aliases=['harbor_password'], type='str', default="Harbor12345", no_log=True)
     )
     return argument_spec

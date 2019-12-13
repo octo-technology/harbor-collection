@@ -3,7 +3,7 @@
 - name: create a user
   harbor_user:
       harbor_url: "http://{{ local_harbor }}"
-      harbor_user: "{{ harbor_admin_user }}"
+      harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       username: "rrey"
       email: "rrey@octo.com"
@@ -19,7 +19,7 @@
 - name: Check user creation idempotency
   harbor_user:
       harbor_url: "http://{{ local_harbor }}"
-      harbor_user: "{{ harbor_admin_user }}"
+      harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       username: "rrey"
       email: "rrey@octo.com"
@@ -35,7 +35,7 @@
 - name: delete a user
   harbor_user:
       harbor_url: "http://{{ local_harbor }}"
-      harbor_user: "{{ harbor_admin_user }}"
+      harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       username: "rrey"
       email: "rrey@octo.com"
@@ -50,7 +50,7 @@
 - name: Check delete user idempotency
   harbor_user:
       harbor_url: "http://{{ local_harbor }}"
-      harbor_user: "{{ harbor_admin_user }}"
+      harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       username: "rrey"
       email: "rrey@octo.com"

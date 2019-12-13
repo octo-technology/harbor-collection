@@ -3,7 +3,7 @@
 - name: create our project with autoscan enabled
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     auto_scan: true
     name: test_project
@@ -19,7 +19,7 @@
 - name: recreate our project with autoscan enabled
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     auto_scan: true
     name: test_project
@@ -35,7 +35,7 @@
 - name: disable autoscan
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     auto_scan: false
     name: test_project
@@ -51,7 +51,7 @@
 - name: disable autoscan again
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     auto_scan: false
     name: test_project
@@ -67,7 +67,7 @@
 - name: clear project
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
-    harbor_user: "{{ harbor_admin_user }}"
+    harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
     state: absent

@@ -22,7 +22,7 @@ class ModuleDocFragment(object):
       - The username used for basic authentication with Harbor.
     required: true
     type: str
-    aliases: ["harbor_user"]
+    aliases: ["harbor_username"]
     default: "admin"
   url_password:
     description:

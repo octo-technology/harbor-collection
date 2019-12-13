@@ -1,4 +1,4 @@
-image: rrey/ansible-collection-runner:0.1
+image: rrey/ansible-collection-runner:0.2
 variables:
   ANSIBLE_FORCE_COLOR: "true"
 
@@ -16,7 +16,8 @@ sanity:
   before_script:
     - mkdir -p ../ansible_collections/sfr/
     - mv ../sfr-bench ../ansible_collections/sfr/harbor
-    - mkdir -p ../sfr-bench
-      #    - cd harbor/ansible_collections/sfr/harbor
+    - mkdir /builds/rrey-octo/sfr-bench
+    - pip3 install -r requirements.txt
   script:
-    - ansible-test sanity --docker --python 3.6
+    - ansible --version
+    - ansible-test sanity --skip-test pylint
