@@ -1,4 +1,4 @@
-image: rrey/ansible-collection-runner:0.2
+image: registry.pic.services.prod/rhel7/rhel-sfr:latest
 variables:
   ANSIBLE_FORCE_COLOR: "true"
 
@@ -8,16 +8,27 @@ stages:
 
 sanity:
   stage: tests
-  services:
-  - docker:19.03.1-dind
-  variables:
-    DOCKER_HOST: "tcp://docker:2375"
-    DOCKER_TLS_CERTDIR: ""
   before_script:
-    - mkdir -p ../ansible_collections/sfr/
-    - mv ../sfr-bench ../ansible_collections/sfr/harbor
-    - mkdir /builds/rrey-octo/sfr-bench
+    - yum update -y && yum install -y python3 openssh-clients git
     - pip3 install -r requirements.txt
   script:
     - ansible --version
-    - ansible-test sanity --skip-test pylint
+    - ansible-test sanity --python 3.6
+
+#integration:
+#  stage: tests
+#  before_script:
+#    - yum update -y && yum install -y python3 openssh-clients git
+#    - pip3 install -r requirements.txt
+#  script:
+#    - ansible --version
+#    - ansible-test integration --python 3.6
+
+#units:
+#  stage: tests
+#  before_script:
+#    - yum update -y && yum install -y python3 openssh-clients git
+#    - pip3 install -r requirements.txt
+#  script:
+#    - ansible --version
+#    - ansible-test units --python 3.6
