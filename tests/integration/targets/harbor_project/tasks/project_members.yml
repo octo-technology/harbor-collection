@@ -2,7 +2,7 @@
 
 - name: create an administrator for our project
   harbor_user:
-      harbor_url: "http://{{ local_harbor }}"
+      harbor_url: "{{ harbor_url }}"
       harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       username: "test_admin"
@@ -18,7 +18,7 @@
 
 - name: create our project
   harbor_project:
-    harbor_url: "http://{{ local_harbor }}"
+    harbor_url: "{{ harbor_url }}"
     harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     administrators:
@@ -35,7 +35,7 @@
 
 - name: clear project
   harbor_project:
-    harbor_url: "http://{{ local_harbor }}"
+    harbor_url: "{{ harbor_url }}"
     harbor_username: "{{ harbor_admin_user }}"
     harbor_password: "{{ harbor_admin_password }}"
     name: test_project
@@ -44,7 +44,7 @@
 
 - name: clear user
   harbor_user:
-      harbor_url: "http://{{ local_harbor }}"
+      harbor_url: "{{ harbor_url }}"
       harbor_username: "{{ harbor_admin_user }}"
       harbor_password: "{{ harbor_admin_password }}"
       username: "test_admin"
