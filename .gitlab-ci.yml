@@ -15,14 +15,15 @@ sanity:
     - ansible --version
     - ansible-test sanity --python 3.6
 
-#integration:
-#  stage: tests
-#  before_script:
-#    - yum update -y && yum install -y python3 openssh-clients git
-#    - pip3 install -r requirements.txt
-#  script:
-#    - ansible --version
-#    - ansible-test integration --python 3.6
+integration:
+  stage: tests
+  before_script:
+    - yum update -y && yum install -y python3 openssh-clients git
+    - pip3 install -r requirements.txt
+    - ./scripts/set_harbor_vars.sh
+  script:
+    - ansible --version
+    - ansible-test integration --python 3.6
 
 #units:
 #  stage: tests
