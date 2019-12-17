@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function
 import json
 from ansible.module_utils.urls import fetch_url, url_argument_spec, basic_auth_header
+from ansible.module_utils._text import to_bytes
 
 __metaclass__ = type
 
@@ -29,9 +30,12 @@ class HarborBaseInterface(object):
         resp, info = fetch_url(self._module, full_url, data=data, headers=headers, method=method)
         status_code = info["status"]
         if status_code == 404:
-            return None
+            if to_bytes("Page Not Found") in info['body']:
+                self._module.fail_json(msg="URL %s not found" % full_url, reason="page not found")
+            else:
+                return None
         elif status_code == 401:
-            self._module.fail_json(msg="Unauthorized to perform action '%s' on '%s' header: %s" % (method, full_url, self.headers))
+            self._module.fail_json(msg="Unauthorized to perform action '%s' on '%s'" % (method, full_url))
         elif status_code == 403:
             self._module.fail_json(msg="Permission Denied")
         elif 200 <= status_code < 300:
@@ -41,7 +45,7 @@ class HarborBaseInterface(object):
             else:
                 return None
         elif status_code == 401:
-            self._module.fail_json(msg="Unauthorized to perform action '%s' on '%s' header: %s" % (method, full_url, self.headers))
+            self._module.fail_json(msg="Unauthorized to perform action '%s' on '%s'" % (method, full_url))
         elif status_code == 403:
             self._module.fail_json(msg="Permission Denied")
         self._module.fail_json(

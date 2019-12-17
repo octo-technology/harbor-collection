@@ -250,7 +250,7 @@ def main():
         if administrators:
             for user_name in administrators:
                 members = harbor_iface.get_project_members(project_id)
-                if user_name not in [member['entity_id'] for member in members]:
+                if user_name not in [member['entity_name'] for member in members]:
                     harbor_iface.add_admin_member_to_project(user_name, project_id)
                     changed = True
             project = harbor_iface.get_project_by_name(name)
@@ -261,6 +261,7 @@ def main():
             project = harbor_iface.get_project_by_name(name)
             changed = True
 
+        existing_retention = None
         project_retention = harbor_iface.get_project_retention(project_id)
         if project_retention:
             if not project_retention["rules"]:
@@ -275,8 +276,6 @@ def main():
                 for rule in existing_retention['rules']:
                     del rule["id"]
                     del rule["priority"]
-        else:
-            existing_retention = None
 
         requested_retention = None if retention is None else harbor_iface.get_retention_definition(project_id, retention)
 

@@ -7,12 +7,3 @@
       harbor_password: "{{ harbor_admin_password }}"
       name: test_project
       state: absent
-
-- name: delete test user
-  harbor_user:
-      harbor_url: "{{ harbor_url }}"
-      harbor_username: "{{ harbor_admin_user }}"
-      harbor_password: "{{ harbor_admin_password }}"
-      username: "test_admin"
-      email: "test_admin@octo.com"
-      state: absent
