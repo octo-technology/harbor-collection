@@ -17,4 +17,3 @@
 - import_tasks: retentions.yml
   when: "harbor_version is version('1.9', '>=', strict=True)"
 - import_tasks: clean.yml
-
