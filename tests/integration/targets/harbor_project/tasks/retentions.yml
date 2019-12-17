@@ -1,34 +1,6 @@
 ---
 
-- name: create our project without retention
-  harbor_project:
-    harbor_url: "{{ harbor_url }}"
-    harbor_username: "{{ harbor_admin_user }}"
-    harbor_password: "{{ harbor_admin_password }}"
-    name: test_project
-    state: present
-  register: creation_result
-
-- assert:
-    that:
-      - "creation_result.changed == true"
-
-
-- name: remove nonexisting retention for our project (should do nothing)
-  harbor_project:
-    harbor_url: "{{ harbor_url }}"
-    harbor_username: "{{ harbor_admin_user }}"
-    harbor_password: "{{ harbor_admin_password }}"
-    name: test_project
-    state: present
-  register: creation_result
-
-- assert:
-    that:
-      - "creation_result.changed == false"
-
-
-- name: recreate our project with a retention of 4 versions
+- name: create project with a retention of 4 versions
   harbor_project:
     harbor_url: "{{ harbor_url }}"
     harbor_username: "{{ harbor_admin_user }}"
@@ -38,6 +10,9 @@
     state: present
   register: creation_result
 
+- debug:
+    var: creation_result
+
 - assert:
     that:
       - "creation_result.changed == true"
@@ -45,7 +20,7 @@
       - 'creation_result.project.retention.rules[0].tag_selectors[0].pattern == "*.*.*"'
 
 
-- name: recreate again our project with a same retention of 4 versions
+- name: Test idempotency with retention set
   harbor_project:
     harbor_url: "{{ harbor_url }}"
     harbor_username: "{{ harbor_admin_user }}"
@@ -91,21 +66,6 @@
 - assert:
     that:
       - "creation_result.changed == true"
-      - "creation_result.project.retention.rules | length == 0"
-
-
-- name: remove again retention for our project (should be effectless)
-  harbor_project:
-    harbor_url: "{{ harbor_url }}"
-    harbor_username: "{{ harbor_admin_user }}"
-    harbor_password: "{{ harbor_admin_password }}"
-    name: test_project
-    state: present
-  register: creation_result
-
-- assert:
-    that:
-      - "creation_result.changed == false"
       - "creation_result.project.retention.rules | length == 0"
 
 
