@@ -96,7 +96,17 @@ EXAMPLES = '''
     versions_retained: 10
     name: test_project
     state: present
-'''
+
+- name: set maximum disk usage to 10ko and maximum number of images to 12 
+  harbor_project:
+    harbor_url: "http://{{ local_harbor }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    quota_disk_space: 10240
+    quota_artifact_count: 12
+    state: present
+''''
 
 RETURN = '''
 ---
