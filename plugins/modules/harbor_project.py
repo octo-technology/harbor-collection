@@ -106,7 +106,7 @@ EXAMPLES = '''
     quota_disk_space: 10240
     quota_artifact_count: 12
     state: present
-''''
+'''
 
 RETURN = '''
 ---
@@ -138,7 +138,7 @@ class HarborInterface(HarborBaseInterface):
         project = response[0]
         project_id = project['project_id']
         project['members'] = self.get_project_members(project_id)
-        project['metadata'] = self.get_metadata(project_id)
+        project['metadata'] = self.get_project_metadata(project_id)
         retention = self.get_project_retention(project_id)
         if retention:
             project['retention'] = retention
@@ -159,11 +159,6 @@ class HarborInterface(HarborBaseInterface):
         payload = dict(role_id=1, member_user=dict(username=user_name))
         url = "/api/projects/{project_id}/members".format(project_id=project_id)
         response = self._send_request(url, data=payload, headers=self.headers, method="POST")
-        return response
-
-    def get_metadata(self, project_id):
-        url = "/api/projects/{project_id}/metadatas".format(project_id=project_id)
-        response = self._send_request(url, headers=self.headers, method="GET")
         return response
 
     def enable_autoscan(self, project_id, enabled):
@@ -246,7 +241,7 @@ class HarborInterface(HarborBaseInterface):
         return response
 
     def get_project_retention(self, project_id):
-        retention_id = self.get_metadata(project_id).get('retention_id', None)
+        retention_id = self.get_project_metadata(project_id).get('retention_id', None)
         if retention_id:
             url = "/api/retentions/{retention_id}".format(retention_id=retention_id)
             response = self._send_request(url, headers=self.headers, method="GET")
@@ -290,12 +285,14 @@ def main():
     harbor_iface = HarborInterface(module)
 
     changed = False
+    created = False
 
     if state == 'present':
         project = harbor_iface.get_project_by_name(name)
         if project is None:
             harbor_iface.create_project(name, quota_disk_space, quota_artifact_count)
             project = harbor_iface.get_project_by_name(name)
+            created = True
             changed = True
 
         requested_quota = {"count": quota_artifact_count, "storage": quota_disk_space}
@@ -305,7 +302,7 @@ def main():
             changed = True
 
         project_id = project['project_id']
-        metadata = harbor_iface.get_metadata(project_id)
+        metadata = harbor_iface.get_project_metadata(project_id)
 
         if administrators:
             for user_name in administrators:
@@ -344,7 +341,7 @@ def main():
             project = harbor_iface.get_project_by_name(name)
             changed = True
 
-        module.exit_json(failed=False, changed=changed, project=project)
+        module.exit_json(failed=False, changed=changed, project=project, created=created)
     elif state == 'absent':
         project = harbor_iface.get_project_by_name(name)
         if project is None:

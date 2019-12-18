@@ -12,6 +12,7 @@
 - assert:
     that:
       - "first_creation_result.changed == true"
+      - "first_creation_result.created == true"
       - "first_creation_result.project.name == 'test_project'"
       - "first_creation_result.project.quota.hard.storage == -1"
       - "first_creation_result.project.quota.hard.count == -1"
@@ -28,4 +29,5 @@
 - assert:
     that:
       - "second_creation_result.changed == false"
+      - "second_creation_result.created == false"
       - "second_creation_result.project.project_id == {{ first_creation_result.project.project_id }}"

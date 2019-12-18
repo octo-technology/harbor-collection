@@ -51,3 +51,17 @@ class HarborBaseInterface(object):
         self._module.fail_json(
             failed=True,
             msg="Harbor API answered with HTTP %d, url %s, response %s, payload %s" % (status_code, full_url, resp, data))
+
+    def get_project_by_name(self, name):
+        url = "/api/projects?name={name}".format(name=name)
+        response = self._send_request(url, headers=self.headers, method="GET")
+        if not response:
+            return None
+        if not len(response) == 1:
+            raise AssertionError("Expected 1 project, got %d" % len(response))
+        return response[0]
+
+    def get_project_metadata(self, project_id):
+        url = "/api/projects/{project_id}/metadatas".format(project_id=project_id)
+        response = self._send_request(url, headers=self.headers, method="GET")
+        return response

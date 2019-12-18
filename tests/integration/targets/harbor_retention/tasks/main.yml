@@ -1,0 +1,71 @@
+---
+
+- name: set retention to retain 5 tags with semver pattern
+  harbor_retention:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: toto
+    rules:
+      - include_repos: "**"
+        include_tags:  "*.*.*"
+        retain: 5
+  register: result
+
+- debug:
+    var: result
+
+- assert:
+    that:
+      - "result.changed == true"
+      - "result.project.retention.rules | length == 1"
+
+- name: set retention to retain 5 tags with semver pattern
+  harbor_retention:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: toto
+    rules:
+      - include_repos: "**"
+        include_tags:  "*.*.*"
+        retain: 5
+  register: result
+
+- debug:
+    var: result
+
+- assert:
+    that:
+      - "result.changed == false"
+      - "result.project.retention.rules | length == 1"
+
+- name: set retention to retain 5 last versioned images and 3 non versioned
+  harbor_retention:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: toto
+    rules:
+      - include_repos: "**"
+        include_tags:  "*.*.*"
+        retain: 5
+      - include_repos: "**"
+        exclude_tags:  "*.*.*"
+        retain: 3
+  register: result
+
+- debug:
+    var: result
+
+- assert:
+    that:
+      - "result.changed == true"
+      - "result.project.retention.rules | length == 2"
+
+- name: Delete all retention rules on project
+  harbor_retention:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: toto
