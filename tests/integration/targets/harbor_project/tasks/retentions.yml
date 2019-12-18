@@ -10,9 +10,6 @@
     state: present
   register: creation_result
 
-- debug:
-    var: creation_result
-
 - assert:
     that:
       - "creation_result.changed == true"
