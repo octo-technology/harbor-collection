@@ -13,6 +13,8 @@
     that:
       - "first_creation_result.changed == true"
       - "first_creation_result.project.name == 'test_project'"
+      - "first_creation_result.project.quota.hard.storage == -1"
+      - "first_creation_result.project.quota.hard.count == -1"
 
 - name: recreate same new project
   harbor_project:

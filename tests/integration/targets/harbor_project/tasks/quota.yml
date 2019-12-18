@@ -1,0 +1,37 @@
+---
+
+- name: Update project quota
+  harbor_project:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    quota_disk_space: 1024
+    quota_artifact_count: 100
+    state: present
+  register: quota_result
+
+- assert:
+    that:
+      - "quota_result.changed == true"
+      - "quota_result.project.project_id == {{ first_creation_result.project.project_id }}"
+      - "quota_result.project.quota.hard.storage == 1024"
+      - "quota_result.project.quota.hard.count == 100"
+
+- name: Test project with quota idempotency
+  harbor_project:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    quota_disk_space: 1024
+    quota_artifact_count: 100
+    state: present
+  register: quota_result
+
+- assert:
+    that:
+      - "quota_result.changed == false"
+      - "quota_result.project.project_id == {{ first_creation_result.project.project_id }}"
+      - "quota_result.project.quota.hard.storage == 1024"
+      - "quota_result.project.quota.hard.count == 100"

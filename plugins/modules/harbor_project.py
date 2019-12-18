@@ -38,6 +38,16 @@ options:
     description: number of semantically tagged versions of images to retain (last pushed)
     required: false
     type: int
+  quota_disk_space:
+    description: the maximum space (in bytes) that the project can use. (-1 means unlimited)
+    required: false
+    default: -1
+    type: int
+  quota_artifact_count:
+    description: the maximum number of artifacts that can be created in the project (-1 means unlimited)
+    required: false
+    default: -1
+    type: int
 extends_documentation_fragment:
   - sfr.harbor.harbor
 '''
@@ -92,6 +102,7 @@ RETURN = '''
 ---
 '''
 
+import itertools
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.sfr.harbor.plugins.module_utils.base import harbor_argument_spec
 from ansible_collections.sfr.harbor.plugins.module_utils.harbor import HarborBaseInterface
@@ -101,9 +112,9 @@ __metaclass__ = type
 
 class HarborInterface(HarborBaseInterface):
 
-    def create_project(self, name):
+    def create_project(self, name, quota_disk_space, quota_artifact_count):
         url = "/api/projects"
-        project = dict(project_name=name, metadata=dict(public="false"), count_limit=-1, storage_limit=10737418240)
+        project = dict(project_name=name, metadata=dict(public="false"), storage_limit=quota_disk_space, count_limit=quota_artifact_count)
         response = self._send_request(url, data=project, headers=self.headers, method="POST")
         return response
 
@@ -121,6 +132,7 @@ class HarborInterface(HarborBaseInterface):
         retention = self.get_project_retention(project_id)
         if retention:
             project['retention'] = retention
+        project['quota'] = self._get_quota_by_project_name(name)
         return project
 
     def delete_project(self, project_id):
@@ -147,6 +159,34 @@ class HarborInterface(HarborBaseInterface):
     def enable_autoscan(self, project_id, enabled):
         url = "/api/projects/{project_id}".format(project_id=project_id)
         payload = {"metadata": {"auto_scan": "true" if enabled else "false"}}
+        response = self._send_request(url, data=payload, headers=self.headers, method="PUT")
+        return response
+
+    def _get_quota_by_project_name(self, project_name):
+        def get_page(number):
+            url = "/api/quotas?page_size=2&page={0}".format(number)
+            response = self._send_request(url, headers=self.headers, method="GET")
+            if response is None:
+                response = []
+            for quota in response:
+                yield quota
+
+        def get_all():
+            for p in itertools.count(start=1):
+                page = get_page(p)
+                if not page:
+                    break
+                for quota in page:
+                    yield quota
+
+        for quota in get_all():
+            if quota['ref']['name'] == project_name:
+                return quota
+
+    def update_quota(self, project_name, quota_disk_space, quota_artifact_count):
+        quota = self._get_quota_by_project_name(project_name)
+        url = "/api/quotas/{quota_id}".format(quota_id=quota["id"])
+        payload = {"hard": {"count": quota_artifact_count, "storage": quota_disk_space}}
         response = self._send_request(url, data=payload, headers=self.headers, method="PUT")
         return response
 
@@ -220,6 +260,8 @@ argument_spec.update(
     name=dict(type='str', required=True),
     auto_scan=dict(type='bool', defaults=False),
     versions_retained=dict(type='int'),
+    quota_disk_space=dict(type='int', default=-1),
+    quota_artifact_count=dict(type='int', default=-1),
     administrators=dict(type='list', default=None),
 )
 
@@ -229,6 +271,8 @@ def main():
     module = setup_module_object()
     state = module.params['state']
     name = module.params['name']
+    quota_disk_space = module.params['quota_disk_space']
+    quota_artifact_count = module.params['quota_artifact_count']
     administrators = module.params['administrators']
     autoscan = module.params['auto_scan'] is True
     retention = module.params.get('versions_retained', None)
@@ -240,7 +284,13 @@ def main():
     if state == 'present':
         project = harbor_iface.get_project_by_name(name)
         if project is None:
-            harbor_iface.create_project(name)
+            harbor_iface.create_project(name, quota_disk_space, quota_artifact_count)
+            project = harbor_iface.get_project_by_name(name)
+            changed = True
+
+        requested_quota = {"count": quota_artifact_count, "storage": quota_disk_space}
+        if requested_quota != project["quota"]["hard"]:
+            harbor_iface.update_quota(name, quota_disk_space, quota_artifact_count)
             project = harbor_iface.get_project_by_name(name)
             changed = True
 
