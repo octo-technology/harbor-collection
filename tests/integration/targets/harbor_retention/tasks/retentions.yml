@@ -105,6 +105,31 @@
       - "result.project.retention.rules.0.tag_selectors.0.pattern == '*.*.*'"
       - "result.project.retention.trigger.settings.cron == '0 0 0 * * *'"
 
+- name: update retention schedule
+  harbor_retention:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: ansible-test-retention
+    schedule: "0 0 0 1 * *"
+    rules:
+      - include_repos: "**"
+        include_tags:  "*.*.*"
+        retain: 5
+  register: result
+
+- assert:
+    that:
+      - "result.changed == true"
+      - "result.project.retention.rules | length == 1"
+      - "result.project.retention.rules.0.action == 'retain'"
+      - "result.project.retention.rules.0.params.latestPushedK == 5"
+      - "result.project.retention.rules.0.scope_selectors.repository.0.decoration == 'repoMatches'"
+      - "result.project.retention.rules.0.scope_selectors.repository.0.pattern == '**'"
+      - "result.project.retention.rules.0.tag_selectors.0.decoration == 'matches'"
+      - "result.project.retention.rules.0.tag_selectors.0.pattern == '*.*.*'"
+      - "result.project.retention.trigger.settings.cron == '0 0 0 1 * *'"
+
 - name: remove schedule for retention
   harbor_retention:
     harbor_url: "{{ harbor_url }}"
