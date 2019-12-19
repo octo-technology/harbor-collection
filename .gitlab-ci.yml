@@ -51,7 +51,7 @@ build collection:
     expire_in: 1 day
 
 publish collection:
-  stage: build
+  stage: publish
   before_script:
     - yum update -y && yum install -y python3 openssh-clients git
     - pip3 install -r requirements.txt
