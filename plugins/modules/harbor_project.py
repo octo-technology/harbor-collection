@@ -34,10 +34,6 @@ options:
     required: false
     type: bool
     default: false
-  versions_retained:
-    description: number of semantically tagged versions of images to retain (last pushed)
-    required: false
-    type: int
   quota_disk_space:
     description: the maximum space (in bytes) that the project can use. (-1 means unlimited)
     required: false
@@ -85,15 +81,6 @@ EXAMPLES = '''
     harbor_password: "{{ harbor_admin_password }}"
     administrators:
       - test_admin
-    name: test_project
-    state: present
-
-- name: set retention to 10 semantically versioned image versions
-  harbor_project:
-    harbor_url: "http://{{ local_harbor }}"
-    harbor_username: "{{ harbor_admin_user }}"
-    harbor_password: "{{ harbor_admin_password }}"
-    versions_retained: 10
     name: test_project
     state: present
 
@@ -264,7 +251,6 @@ argument_spec = harbor_argument_spec()
 argument_spec.update(
     name=dict(type='str', required=True),
     auto_scan=dict(type='bool', defaults=False),
-    versions_retained=dict(type='int'),
     quota_disk_space=dict(type='int', default=-1),
     quota_artifact_count=dict(type='int', default=-1),
     administrators=dict(type='list', default=None),
@@ -280,7 +266,6 @@ def main():
     quota_artifact_count = module.params['quota_artifact_count']
     administrators = module.params['administrators']
     autoscan = module.params['auto_scan'] is True
-    retention = module.params.get('versions_retained', None)
 
     harbor_iface = HarborInterface(module)
 
@@ -315,29 +300,6 @@ def main():
         has_autoscan = metadata.get('auto_scan', "false") == "true"
         if autoscan != has_autoscan:
             harbor_iface.enable_autoscan(project_id, autoscan)
-            project = harbor_iface.get_project_by_name(name)
-            changed = True
-
-        existing_retention = None
-        project_retention = harbor_iface.get_project_retention(project_id)
-        if project_retention:
-            if not project_retention["rules"]:
-                existing_retention = None
-            else:
-                # remove server-generated keys to allow for memberwise comparison
-                existing_retention = {}
-                for k, v in project_retention.items():
-                    if k != "id":
-                        existing_retention[k] = v
-                # existing_retention = {k: v for (k, v) in project_retention.items() if k != "id"}
-                for rule in existing_retention['rules']:
-                    del rule["id"]
-                    del rule["priority"]
-
-        requested_retention = None if retention is None else harbor_iface.get_retention_definition(project_id, retention)
-
-        if existing_retention != requested_retention:
-            harbor_iface.apply_retention_to_project(project_id, retention, project_retention)
             project = harbor_iface.get_project_by_name(name)
             changed = True
 
