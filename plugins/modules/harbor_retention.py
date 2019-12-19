@@ -14,40 +14,28 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: harbor_project
+module: harbor_retention
 author:
   - Antoine Gaudelas (!UNKNOWN)
+  - Rémi REY (!UNKNOWN)
 description:
   - Create/update/delete Harbor projects using Harbor's REST API.
 short_description: Create project on Harbor
 options:
-  name:
+  project_name:
     description: name of the project
     required: true
     type: str
-  administrators:
-    description: list of user names that can administer the project
+  rules:
+    description: name of the project
     required: false
     type: list
-  auto_scan:
-    description: whether to activate scan-on-push on images or the project
+    default: []
+  schedule:
+    description: name of the project
     required: false
-    type: bool
-    default: false
-  versions_retained:
-    description: number of semantically tagged versions of images to retain (last pushed)
-    required: false
-    type: int
-  quota_disk_space:
-    description: the maximum space (in bytes) that the project can use. (-1 means unlimited)
-    required: false
-    default: -1
-    type: int
-  quota_artifact_count:
-    description: the maximum number of artifacts that can be created in the project (-1 means unlimited)
-    required: false
-    default: -1
-    type: int
+    type: str
+    default: ""
 extends_documentation_fragment:
   - sfr.harbor.harbor
 '''
@@ -96,6 +84,7 @@ RETURN = '''
 
 import itertools
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible_collections.sfr.harbor.plugins.module_utils.base import harbor_argument_spec
 from ansible_collections.sfr.harbor.plugins.module_utils.harbor import HarborBaseInterface
 
@@ -104,72 +93,60 @@ __metaclass__ = type
 
 class HarborInterface(HarborBaseInterface):
 
-
     def get_project_by_name(self, name):
         project = super(HarborInterface, self).get_project_by_name(name)
         if project:
             project_id = project['project_id']
-            project['retention'] = self.get_project_retention(project_id)
+            retention_id = project['metadata'].get("retention_id", None)
+
+            project['retention'] = None
+            if retention_id:
+                project['retention'] = self.get_retention(retention_id)
         return project
 
+    def get_retention_definition(self, project_id, rules, schedule, trigger_references):
+        try:
+            rules = [get_rule_definition(project_id, rule) for rule in rules]
+        except Exception as e:
+            self._module.fail_json(msg=str(e))
 
-    def get_rule_definition(self, project_id, rule):
-        return {
-                "disabled": False,
-                "action": "retain",
-                "params": {"latestPushedK": 1},
-                "scope_selectors": {
-                    "repository": [
-                        {
-                            "kind": "doublestar",
-                            "decoration": "repoMatches",
-                            "pattern": "**"
-                        }
-                    ]
-                },
-                "tag_selectors": [
-                    {
-                        "kind": "doublestar",
-                        "decoration": "matches",
-                        "pattern": "*.*.*"
-                    }
-                ],
-                "template": "latestPushedK"
-        }
-
-    def get_retention_definition(self, project_id, rules):
         payload = {
-            "rules": [self.get_rule_definition(project_id, rule) for rule in rules],
+            "rules": rules,
             "algorithm": "or",
             "trigger": {
                 "kind": "Schedule",
-                "references": {},
-                "settings": {"cron": ""}
+                "settings": {"cron": schedule},
+                "references": trigger_references
             },
             "scope": {"level": "project", "ref": project_id}
         }
         return payload
 
-    def create_retention(self, project_id, rules):
-        payload = self.get_retention_definition(project_id, rules)
+    def create_retention(self, project_id, rules, schedule, trigger_references):
+        payload = self.get_retention_definition(project_id, rules, schedule, trigger_references)
         url = "/api/retentions"
         response = self._send_request(url, data=payload, headers=self.headers, method="POST")
         return response
 
-    def update_retention(self, retention_id, project_id, rules):
-        payload = self.get_retention_definition(project_id, rules)
+    def update_retention(self, retention_id, project_id, rules, schedule, trigger_references):
         url = "/api/retentions/{id}".format(id=retention_id)
+        payload = self.get_retention_definition(project_id, rules, schedule, trigger_references)
         response = self._send_request(url, data=payload, headers=self.headers, method="PUT")
         return response
 
-    def get_project_retention(self, project_id):
-        retention_id = self.get_project_metadata(project_id).get('retention_id', None)
-        if retention_id:
-            url = "/api/retentions/{retention_id}".format(retention_id=retention_id)
-            response = self._send_request(url, headers=self.headers, method="GET")
-            return response
-        else:
-            return None
+    def get_retention(self, retention_id):
+        url = "/api/retentions/{retention_id}".format(retention_id=retention_id)
+        response = self._send_request(url, headers=self.headers, method="GET")
+        return response
+
+#    def get_project_retention(self, project_id):
+#        retention_id = self.get_project_metadata(project_id).get('retention_id', None)
+#        if retention_id:
+#            url = "/api/retentions/{retention_id}".format(retention_id=retention_id)
+#            response = self._send_request(url, headers=self.headers, method="GET")
+#            return response
+#        else:
+#            return None
 
 
 def setup_module_object():
@@ -185,7 +162,8 @@ argument_spec = harbor_argument_spec()
 
 argument_spec.update(
     project_name=dict(type='str', required=True),
-    rules=dict(type=list, required=False, default=[]),
+    rules=dict(type='list', required=False, default=[]),
+    schedule=dict(type='str', required=False, default=""),
 )
 
 
@@ -201,11 +179,68 @@ def clean_harbor_retention_rules(project_retention):
     return clean_retention
 
 
+def get_retention_scope_selector(rule):
+    if "include_repos" in rule.keys():
+        action = "include_repos"
+        decoration = "repoMatches"
+    elif "exclude_repos" in rule.keys():
+        action = "exclude_repos"
+        decoration = "repoExcludes"
+    else:
+        raise Exception("Rule shall contain 'include_repos' or 'exclude_repos' parameter")
+    pattern = rule[action]
+    return {
+        "repository": [
+            {
+                "kind": "doublestar",
+                "decoration": decoration,
+                "pattern": pattern
+            }
+        ]
+    }
+
+
+def get_retention_tag_selector(rule):
+    if "include_tags" in rule.keys():
+        action = "include_tags"
+        decoration = "matches"
+    elif "exclude_tags" in rule.keys():
+        action = "exclude_tags"
+        decoration = "excludes"
+    else:
+        raise Exception("Rule shall contain 'include_tags' or 'exclude_tags' parameter")
+    pattern = rule[action]
+    return [{
+        "kind": "doublestar",
+        "decoration": decoration,
+        "pattern": pattern
+    }]
+
+
+def get_rule_definition(project_id, rule):
+    if rule["retain"] == -1:
+        template = "always"
+        params = {}
+    else:
+        template = "latestPushedK"
+        params = {"latestPushedK": rule["retain"]}
+
+    return {
+        "disabled": False,
+        "action": "retain",
+        "params": {"latestPushedK": rule["retain"]},
+        "scope_selectors": get_retention_scope_selector(rule),
+        "tag_selectors": get_retention_tag_selector(rule),
+        "template": template
+    }
+
+
 def main():
 
     module = setup_module_object()
     project_name = module.params['project_name']
     rules = module.params['rules']
+    schedule = module.params['schedule']
 
     harbor_iface = HarborInterface(module)
 
@@ -215,20 +250,24 @@ def main():
         module.fail_json(msg="Project '%s' not found" % project_name)
 
     project_id = project["project_id"]
-    existing_retention = clean_harbor_retention_rules(project["retention"])
-    requested_retention = harbor_iface.get_retention_definition(project_id, rules)
 
-    if existing_retention == requested_retention:
-        module.exit_json(changed=False, project=project, msg="no changes")
-    else:
-        if existing_retention:
-            harbor_iface.update_retention(project["retention"]["id"], project_id, rules)
-        else:
-            harbor_iface.create_retention(project_id, rules)
+    if project["retention"] is None:
+        trigger_references = {}
+        harbor_iface.create_retention(project_id, rules, schedule, trigger_references)
         project = harbor_iface.get_project_by_name(project_name)
         changed = True
 
-    module.exit_json(failed=False, changed=changed, project=project)
+    trigger_references = project["retention"]["trigger"]["references"]
+    existing_retention = clean_harbor_retention_rules(project["retention"])
+    requested_retention = harbor_iface.get_retention_definition(project_id, rules, schedule, trigger_references)
+
+    if existing_retention != requested_retention:
+        harbor_iface.update_retention(project["retention"]["id"], project_id, rules, schedule, trigger_references)
+        project = harbor_iface.get_project_by_name(project_name)
+        changed = True
+
+    diff = recursive_diff(existing_retention, requested_retention)
+    module.exit_json(changed=changed, project=project, diff=diff)
 
 
 if __name__ == '__main__':

@@ -97,7 +97,7 @@ EXAMPLES = '''
     name: test_project
     state: present
 
-- name: set maximum disk usage to 10ko and maximum number of images to 12 
+- name: set maximum disk usage to 10ko and maximum number of images to 12
   harbor_project:
     harbor_url: "http://{{ local_harbor }}"
     harbor_username: "{{ harbor_admin_user }}"
