@@ -1,3 +1,16 @@
+# Ansible Collection - sfr.harbor
+
+Harbor collection by SFR
+
+## Release Process
+
+The Gitlab pipeline will automatically test and build the collection for every Merge Request.
+The collection is published on Nexus only when a Tag is created on the repository.
+
+**CAUTION:** The `galaxy.yml` MUST be updated to have its `version` parameter updated with the futire tag value.
+The `ansible-galaxy` build command is building the collection archive based on the `galaxy.yml`
+content (and no argument is available to dynamically provide the version).
+
 ## Modules
 
 ### harbor_user
@@ -78,7 +91,6 @@ Example: Running the `harbor_project` target.
 ```
 $ ansible-test integration harbor_project
 ```
-
 
 ## Requirements
 
