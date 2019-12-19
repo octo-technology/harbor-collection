@@ -23,7 +23,7 @@ integration:
     - ./scripts/set_harbor_vars.sh
   script:
     - ansible --version
-    - ansible-test integration --python 3.6 harbor_project
+    - ansible-test integration --python 3.6 harbor_project harbor_retention
 
 #units:
 #  stage: tests
