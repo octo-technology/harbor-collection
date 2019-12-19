@@ -21,6 +21,21 @@ The module allows to manage Users in Harbor. It shall not be used if ldap is plu
 
 The module allows to manage Projects in Harbor.
 
+### harbor_retention
+
+The module allows to manage Projects Tag retention rules in Harbor.
+
+## Modules documentation
+
+All the modules are documented through the standard Ansible method: Through the `DOCUMENTATION` variable inside the module.
+This method allows to used the `ansible-doc` command.:
+
+
+Example ; With the collection installed :
+```
+$ ansible-doc sfr.harbor.harbor_project
+```
+
 ## Development
 
 ### Tests
