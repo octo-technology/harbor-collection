@@ -139,15 +139,6 @@ class HarborInterface(HarborBaseInterface):
         response = self._send_request(url, headers=self.headers, method="GET")
         return response
 
-#    def get_project_retention(self, project_id):
-#        retention_id = self.get_project_metadata(project_id).get('retention_id', None)
-#        if retention_id:
-#            url = "/api/retentions/{retention_id}".format(retention_id=retention_id)
-#            response = self._send_request(url, headers=self.headers, method="GET")
-#            return response
-#        else:
-#            return None
-
 
 def setup_module_object():
     module = AnsibleModule(
