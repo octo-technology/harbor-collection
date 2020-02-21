@@ -1,113 +1,93 @@
-# Ansible Collection - sfr.harbor
+# Harbor Collection for Ansible
 
-Harbor collection by SFR
+This repo hosts the `octo.harbor` Ansible Collection.
 
-## Release Process
+The collection includes a variety of Ansible content to help automate the management of Harbor resources.
 
-The Gitlab pipeline will automatically test and build the collection for every Merge Request.
-The collection is published on Nexus only when a Tag is created on the repository.
+## Included content
 
-**CAUTION:** The `galaxy.yml` MUST be updated to have its `version` parameter updated with the futire tag value.
-The `ansible-galaxy` build command is building the collection archive based on the `galaxy.yml`
-content (and no argument is available to dynamically provide the version).
+Click on the name of a plugin or module to view that content's documentation:
 
-## Modules
+  - **Connection Plugins**:
+  - **Filter Plugins**:
+  - **Inventory Source**:
+  - **Lookup Plugins**:
+  - **Modules**:
+    - [harbor_project](#)
+    - [harbor_retention](#)
+    - [harbor_user](#)
 
-### harbor_user
+## Installation and Usage
 
-The module allows to manage Users in Harbor. It shall not be used if ldap is plugged in.
+### Installing the Collection from Ansible Galaxy
 
-### harbor_project
+Before using the Kuberentes collection, you need to install it with the Ansible Galaxy CLI:
 
-The module allows to manage Projects in Harbor.
+    ansible-galaxy collection install octo.harbor
 
-### harbor_retention
+You can also include it in a `requirements.yml` file and install it via `ansible-galaxy collection install -r requirements.yml`, using the format:
 
-The module allows to manage Projects Tag retention rules in Harbor.
-
-## Modules documentation
-
-All the modules are documented through the standard Ansible method: Through the `DOCUMENTATION` variable inside the module.
-This method allows to used the `ansible-doc` command.:
-
-
-Example ; With the collection installed :
-```
-$ ansible-doc sfr.harbor.harbor_project
+```yaml
+---
+collections:
+  - name: octo.harbor
+    version: 0.1.0
 ```
 
-## Development
+### Using modules from the Harbor Collection in your playbooks
 
-### Tests
+You can either call modules by their Fully Qualified Collection Namespace (FQCN), like `octo.harbor.harbor_project`, or you can call modules by their short name if you list the `octo.harbor` collection in the playbook's `collections`, like so:
 
-Official documentation on Collections development can be found [here](https://docs.ansible.com/ansible/latest/dev_guide/developing_collections.html)
+```yaml
+---
+- hosts: localhost
+  gather_facts: false
+  connection: local
 
-Tests can be executed against the collection with `ansible-test`, which was released with `ansible` in version `2.9.0`. 
-The following commands will require version `2.9.0` as a minimal Ansible version.
+  collections:
+    - octo.harbor
 
-#### Sanity tests
-
-Sanity tests allows to run several tools like pylint and pep8 conformity tests.
-The tests also check that the modules documentation reflects the reality of the module implementation (checks defaults, aliases, etc ...)
-
-You can run the sanity tests by executing the following command:
-
-```
-$ ansible-test sanity
-```
-
-or using docker (prefered):
-
-```
-$ ansible-test sanity --docker
+  tasks:
+      harbor_project:
+        harbor_url: "https://{{ harbor_url }}"
+        harbor_username: "{{ harbor_admin_user }}"
+        harbor_password: "{{ harbor_admin_password }}"
+        name: test_project
+        state: present
 ```
 
-#### Unit tests
+For documentation on how to use individual modules and other content included in this collection, please see the links in the 'Included content' section earlier in this README.
 
-Unit tests allows to tests the plugins code through `pytest`.
-**The harbor collection does not contain any unit tests yet**
+## Testing and Development
 
-```
-$ ansible-test units
-``` 
+If you want to develop new content for this collection or improve what's already here, the easiest way to work on the collection is to clone it into one of the configured [`COLLECTIONS_PATHS`](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#collections-paths), and work on it there.
 
-or using docker (prefered):
+### Testing with `ansible-test`
 
-```
-$ ansible-test units --docker
-``` 
+The `tests` directory contains configuration for running sanity and integration tests using [`ansible-test`](https://docs.ansible.com/ansible/latest/dev_guide/testing_integration.html).
 
-#### Integration tests
+You can run the collection's test suites with the commands:
 
-Integration tests allows to execute tests against a running instance of Harbor.
-The Harbor instance creation is not handled by the `ansible-test` command, and shall be handled before running the command.
+    ansible-test sanity --docker -v --color
+    ansible-test integration --docker -v --color
 
-Once the instance ready, you can run the integration tests by executing the following command:
+## Publishing New Versions
 
-```
-$ ansible-test integration
-```
+The current process for publishing new versions of the Harbor Collection is manual, and requires a user who has access to the `octo.harbor` namespace on Ansible Galaxy to publish the build artifact.
+  1. Ensure `CHANGELOG.md` contains all the latest changes.
+  2. Update `galaxy.yml` and this README's `requirements.yml` example with the new `version` for the collection.
+  3. Tag the version in Git and push to GitHub.
+  4. Run the following commands to build and release the new version on Galaxy:
 
-or using docker (prefered):
+     ```
+     ansible-galaxy collection build
+     ansible-galaxy collection publish ./octo-harbor-$VERSION_HERE.tar.gz
+     ```
 
-```
-$ ansible-test integration --docker
-```
+After the version is published, verify it exists on the [Harbor Collection Galaxy page](https://galaxy.ansible.com/octo/harbor).
 
-##### Integration test targets
+## License
 
-The integration tests have notions of targets. 
-A target is a set of tests which are represented as ansible roles in the `tests/integration/targets/` directory.
+GNU General Public License v3.0 or later
 
-When running the `ansible-test integration` command, the command will run all targets. One can execute a specific target
-by specifying the target name in the command :
-
-Example: Running the `harbor_project` target.
-```
-$ ansible-test integration harbor_project
-```
-
-## Requirements
-
-The `requirements.txt` at the base of the git repository is only for the development environment.
-**The collection usage does not require any dependency**
+See LICENCE to see the full text.

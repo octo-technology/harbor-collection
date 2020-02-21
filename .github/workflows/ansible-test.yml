@@ -41,13 +41,34 @@ jobs:
         #
         #      - name: Run unit tests
         #        run: ansible-test units --docker -v --color --python 3.6 --coverage
-        #
-        #  integration:
-        #    runs-on: ubuntu-latest
-        #    strategy:
-        #      matrix:
-        #        python_version: ["3.6"]
-        #    steps:
+
+  integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version: ["3.6"]
+    container:
+      image: alpine:3.11
+    services:
+      harbor-log:
+        image: goharbor/harbor-log:v1.10.1
+      harbor-db:
+        image: goharbor/harbor-db:v1.10.1
+      harbor-core:
+        image: goharbor/harbor-core:v1.10.1
+      harbor-portal:
+        image: goharbor/harbor-portal:v1.10.1
+      redis:
+        image: goharbor/redis-photon:v1.10.1
+      nginx:
+        image: goharbor/nginx-photon:v1.10.1
+    steps:
+      - name: Test harbor
+        run: apk add curl
+
+      - name: Test harbor
+        run: curl -v http://nginx:8080
+
         #      - name: Check out code
         #        uses: actions/checkout@v1
         #        with:
