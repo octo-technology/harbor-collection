@@ -1,0 +1,2 @@
+scripts/set_harbor_vars.sh shellcheck!skip
+scripts/set_harbor_vars.sh shebang!skip

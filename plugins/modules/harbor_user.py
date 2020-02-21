@@ -29,7 +29,7 @@ options:
   password:
     description:
       - The user password for API authentication.
-    required: true
+    required: False
     type: str
     default: "ChangeMe123"
   email:
