@@ -38,7 +38,7 @@ options:
     required: true
     type: str
 extends_documentation_fragment:
-  - sfr.harbor.harbor
+  - octo.harbor.harbor
 '''
 
 EXAMPLES = '''
@@ -90,8 +90,8 @@ user:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.sfr.harbor.plugins.module_utils.base import harbor_argument_spec
-from ansible_collections.sfr.harbor.plugins.module_utils.harbor import HarborBaseInterface
+from ansible_collections.octo.harbor.plugins.module_utils.base import harbor_argument_spec
+from ansible_collections.octo.harbor.plugins.module_utils.harbor import HarborBaseInterface
 
 __metaclass__ = type
 
