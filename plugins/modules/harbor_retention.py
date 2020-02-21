@@ -31,6 +31,7 @@ options:
     required: false
     type: list
     default: []
+    elements: dict
   schedule:
     description: name of the project
     required: false
@@ -144,7 +145,7 @@ def setup_module_object():
     module = AnsibleModule(
         argument_spec=argument_spec,
         supports_check_mode=False,
-        required_together=[['harbor_username', 'harbor_password']]
+        required_together=[['url_username', 'url_password']]
     )
     return module
 
@@ -153,7 +154,7 @@ argument_spec = harbor_argument_spec()
 
 argument_spec.update(
     project_name=dict(type='str', required=True),
-    rules=dict(type='list', required=False, default=[]),
+    rules=dict(type='list', required=False, default=[], elements='dict'),
     schedule=dict(type='str', required=False, default=""),
 )
 

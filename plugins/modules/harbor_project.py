@@ -29,6 +29,7 @@ options:
     description: list of user names that can administer the project
     required: false
     type: list
+    elements: str
   auto_scan:
     description: whether to activate scan-on-push on images or the project
     required: false
@@ -241,19 +242,22 @@ def setup_module_object():
     module = AnsibleModule(
         argument_spec=argument_spec,
         supports_check_mode=False,
-        required_together=[['harbor_username', 'harbor_password']]
+        required_together=[['url_username', 'url_password']]
     )
     return module
 
 
 argument_spec = harbor_argument_spec()
+user_spec = dict(
+    name=dict(type='str', required=True)
+)
 
 argument_spec.update(
     name=dict(type='str', required=True),
-    auto_scan=dict(type='bool', defaults=False),
+    auto_scan=dict(type='bool', default=False),
     quota_disk_space=dict(type='int', default=-1),
     quota_artifact_count=dict(type='int', default=-1),
-    administrators=dict(type='list', default=None),
+    administrators=dict(type='list', default=None, elements='str')
 )
 
 

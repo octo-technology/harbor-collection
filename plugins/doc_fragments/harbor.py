@@ -20,21 +20,21 @@ class ModuleDocFragment(object):
   url_username:
     description:
       - The username used for basic authentication with Harbor.
-    required: true
+    required: false
     type: str
     aliases: ["harbor_username"]
     default: "admin"
   url_password:
     description:
       - The password used for basic authentication with Harbor.
-    required: true
+    required: false
     type: str
     aliases: ["harbor_password"]
     default: "Harbor12345"
   state:
     description:
       - The desired state.
-    required: true
+    required: false
     type: str
     choices: ["present", "absent"]
     default: "present"
