@@ -1,0 +1,115 @@
+---
+
+- name: Ensure that authentication is db_auth
+  harbor_auth_config:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auth_mode: db_auth
+  register: result
+
+- assert:
+    that:
+    - "result.configurations.auth_mode.value == 'db_auth'"
+    - "not result.configurations.self_registration.value"
+
+- name: (idempotency) Ensure that authentication is db_auth
+  harbor_auth_config:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auth_mode: db_auth
+  register: result
+
+- assert:
+    that:
+    - "not result.changed"
+    - "result.configurations.auth_mode.value == 'db_auth'"
+    - "not result.configurations.self_registration.value"
+
+- name: Ensure that authentication is db_auth and self registration allowed
+  harbor_auth_config:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auth_mode: db_auth
+    database_allow_self_registration: True
+  register: result
+
+- assert:
+    that:
+    - "result.changed"
+    - "result.configurations.auth_mode.value == 'db_auth'"
+    - "result.configurations.self_registration.value"
+
+- name: (idempotency) Ensure that authentication is db_auth and self registration allowed
+  harbor_auth_config:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auth_mode: db_auth
+    database_allow_self_registration: True
+  register: result
+
+- assert:
+    that:
+    - "not result.changed"
+    - "result.configurations.auth_mode.value == 'db_auth'"
+    - "result.configurations.self_registration.value"
+
+- name: Create an OpenID authentication configuration
+  harbor_auth_config:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auth_mode: oidc_auth
+    oidc_name: "Keycloak"
+    oidc_endpoint: "https://keycloak-lab.pic.services.pack/auth/realms/master"
+    oidc_client_id: "harbor-pp"
+    oidc_client_secret: "b35bb85c-bd41-4983-af1e-061d54e0e076"
+    oidc_scope: "openid,email,offline_access,profile"
+    oidc_groups_claim: "roles"
+    oidc_verify_cert: false
+    state: present
+  register: result
+
+- assert:
+    that:
+    - "result.changed"
+    - "result.configurations.auth_mode.value == 'oidc_auth'"
+    - "result.configurations.oidc_name.value == 'Keycloak'"
+    - "result.configurations.oidc_endpoint.value == 'https://keycloak-lab.pic.services.pack/auth/realms/master'"
+    - "result.configurations.oidc_client_id.value == 'harbor-pp'"
+    - "result.configurations.oidc_scope.value == 'openid,email,offline_access,profile'"
+    - "result.configurations.oidc_groups_claim.value == 'roles'"
+    - "not result.configurations.oidc_verify_cert.value"
+
+- name: (idempotency) Create an OpenID authentication configuration
+  harbor_auth_config:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    auth_mode: oidc_auth
+    oidc_name: "Keycloak"
+    oidc_endpoint: "https://keycloak-lab.pic.services.pack/auth/realms/master"
+    oidc_client_id: "harbor-pp"
+    oidc_client_secret: "b35bb85c-bd41-4983-af1e-061d54e0e076"
+    oidc_scope: "openid,email,offline_access,profile"
+    oidc_groups_claim: "roles"
+    oidc_verify_cert: false
+    state: present
+  register: result
+
+- assert:
+    that:
+    - "not result.changed"
+    - "result.configurations.auth_mode.value == 'oidc_auth'"
+    - "result.configurations.oidc_name.value == 'Keycloak'"
+    - "result.configurations.oidc_endpoint.value == 'https://keycloak-lab.pic.services.pack/auth/realms/master'"
+    - "result.configurations.oidc_client_id.value == 'harbor-pp'"
+    - "result.configurations.oidc_scope.value == 'openid,email,offline_access,profile'"
+    - "result.configurations.oidc_groups_claim.value == 'roles'"
+    - "not result.configurations.oidc_verify_cert.value"
+
+...
+
