@@ -1,0 +1,29 @@
+---
+
+- name: create new project
+  harbor_project:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    name: test_project
+    state: present
+
+- name: create a user
+  harbor_user:
+      harbor_url: "{{ harbor_url }}"
+      harbor_username: "{{ harbor_admin_user }}"
+      harbor_password: "{{ harbor_admin_password }}"
+      username: "rrey"
+      email: "rrey@octo.com"
+      state: present
+
+- name: create a user
+  harbor_user:
+      harbor_url: "{{ harbor_url }}"
+      harbor_username: "{{ harbor_admin_user }}"
+      harbor_password: "{{ harbor_admin_password }}"
+      username: "adbo"
+      email: "adbo@octo.com"
+      state: present
+
+...

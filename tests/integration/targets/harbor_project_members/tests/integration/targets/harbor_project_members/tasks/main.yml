@@ -1,0 +1,7 @@
+---
+
+- import_tasks: setup_environment.yml
+- import_tasks: tests.yml
+- import_tasks: clean_environment.yml
+
+...

@@ -1,0 +1,68 @@
+---
+
+- name: add members to project test_project
+  harbor_project_members:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: test_project
+    members:
+      - type: User
+        name: adbo
+        role: master
+  register: add_member_result
+
+- assert:
+    that:
+      - "add_member_result.changed == true"
+      - "add_member_result.created == true"
+
+- name: add members to project test_project (idempotency)
+  harbor_project_members:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: test_project
+    members:
+      - type: User
+        name: adbo
+        role: master
+  register: add_member_idempotency_result
+
+- assert:
+    that:
+      - "add_member_idempotency_result.changed == false"
+      - "add_member_idempotency_result.created == false"
+
+- name: change role of members project test_project
+  harbor_project_members:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: test_project
+    members:
+      - type: User
+        name: adbo
+        role: developer
+  register: update_member_result
+
+- assert:
+    that:
+      - "update_member_result.changed == true"
+      - "update_member_result.created == false"
+
+- name: delete all members project test_project
+  harbor_project_members:
+    harbor_url: "{{ harbor_url }}"
+    harbor_username: "{{ harbor_admin_user }}"
+    harbor_password: "{{ harbor_admin_password }}"
+    project_name: test_project
+    members: []
+  register: delete_member_result
+
+- assert:
+    that:
+      - "delete_member_result.changed == true"
+      - "delete_member_result.created == false"
+
+...
