@@ -1,0 +1,7 @@
+---
+
+harbor_url: "http://127.0.0.1"
+harbor_admin_user: "admin"
+harbor_admin_password: "Harbor12345"
+
+...
